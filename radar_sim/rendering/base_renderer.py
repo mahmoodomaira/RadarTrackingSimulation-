@@ -22,3 +22,13 @@ class BaseRenderer(ABC):
     def present(self):
         """Push the finished frame to the screen."""
         pass
+    
+    @abstractmethod
+    def draw_object(self, x: float, y: float, obj_type: str, visible: bool = True):
+        """Draw a radar object at the given position."""
+        pass
+    
+    @abstractmethod
+    def get_delta_time(self) -> float:
+        """Return seconds elapsed since last frame."""
+        pass

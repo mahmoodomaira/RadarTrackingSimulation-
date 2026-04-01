@@ -2,28 +2,30 @@
 import pygame
 import sys
 from rendering.pygame_renderer import PygameRenderer
+from core.simulation import Simulation
 from core.aircraft import Aircraft
+from core.noise_blip import NoiseBlip
 from behaviors.straight_behavior import StraightBehavior
+from behaviors.random_behavior import RandomBehavior
 
 def main():
     renderer = PygameRenderer()
     renderer.initialize()
 
-    # Create one aircraft to test
-    aircraft = Aircraft(
-        obj_id="AC001",
-        x=400, y=300,
-        speed=80,        # pixels per second
-        direction=45,    # degrees
-        behavior=StraightBehavior()
-    )
+    sim = Simulation()
 
-    clock_ref = pygame.time.Clock()
+    # Real aircraft
+    sim.add_object(Aircraft("AC001", 400, 300, speed=80,  direction=45,  behavior=StraightBehavior()))
+    sim.add_object(Aircraft("AC002", 200, 400, speed=60,  direction=310, behavior=StraightBehavior()))
+    sim.add_object(Aircraft("AC003", 600, 200, speed=100, direction=190, behavior=StraightBehavior()))
+
+    # Noise blips
+    sim.add_object(NoiseBlip("N001", 300, 500, speed=40, behavior=RandomBehavior(drift_degrees=45)))
+    sim.add_object(NoiseBlip("N002", 500, 350, speed=30, behavior=RandomBehavior(drift_degrees=60)))
+    sim.add_object(NoiseBlip("N003", 450, 250, speed=50, behavior=RandomBehavior(drift_degrees=90)))
+
     running = True
-
     while running:
-
-        delta_time = clock_ref.tick(60) / 1000.0  # seconds
 
         # 1. Events
         for event in pygame.event.get():
@@ -31,20 +33,17 @@ def main():
                 running = False
 
         # 2. Update
-        aircraft.update(delta_time)
+        delta_time = renderer.get_delta_time()
+        sim.update(delta_time)
 
         # 3. Draw
         renderer.clear()
         renderer.draw_radar_background()
 
-        # Draw the aircraft as a small dot
-        pos = aircraft.get_position()
-        pygame.draw.circle(
-            renderer.screen,
-            (0, 255, 100),
-            (int(pos[0]), int(pos[1])),
-            5
-        )
+        for obj in sim.get_objects():
+            x, y = obj.get_position()
+            visible = getattr(obj, "visible", True)
+            renderer.draw_object(x, y, obj.get_type(), visible)
 
         renderer.present()
 
