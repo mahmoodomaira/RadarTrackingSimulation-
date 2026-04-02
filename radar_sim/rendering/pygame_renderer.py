@@ -9,6 +9,10 @@ class PygameRenderer(BaseRenderer):
         "noise":    (255, 80,  80),
         "unknown":  (200, 200, 200),
     }
+    TAG_COLORS = {
+        "real":  (0,   200, 255),  # cyan ring  — user says real
+        "noise": (255, 165, 0),    # orange ring — user says noise
+    }
     def initialize(self):
         pygame.init()
         self.screen = pygame.display.set_mode(
@@ -38,11 +42,31 @@ class PygameRenderer(BaseRenderer):
         pygame.display.flip()
         self._delta_time = self.clock.tick(config.FPS) / 1000.0
         
-    def draw_object(self, x: float, y: float, obj_type: str, visible: bool = True):
+    def draw_object(
+        self,
+        x: float,
+        y: float,
+        obj_type: str,
+        visible: bool = True,
+        tag: str = None
+    ):
         if not visible:
             return
+
+        ix, iy = int(x), int(y)
+
+        # Draw tag ring first (behind the dot)
+        if tag and tag in self.TAG_COLORS:
+            pygame.draw.circle(
+                self.screen,
+                self.TAG_COLORS[tag],
+                (ix, iy),
+                12, 2          # radius 12, thickness 2
+            )
+
+        # Draw the dot on top
         color = self.OBJECT_COLORS.get(obj_type, (255, 255, 255))
-        pygame.draw.circle(self.screen, color, (int(x), int(y)), 5)
+        pygame.draw.circle(self.screen, color, (ix, iy), 5)
         
     def get_delta_time(self) -> float:
         return self._delta_time  

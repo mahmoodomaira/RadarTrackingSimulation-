@@ -24,8 +24,15 @@ class BaseRenderer(ABC):
         pass
     
     @abstractmethod
-    def draw_object(self, x: float, y: float, obj_type: str, visible: bool = True):
-        """Draw a radar object at the given position."""
+    def draw_object(
+        self,
+        x: float,
+        y: float,
+        obj_type: str,
+        visible: bool = True,
+        tag: str = None
+    ):
+        """Draw a radar object, with optional tag ring."""
         pass
     
     @abstractmethod
