@@ -35,6 +35,9 @@ env/
 .vscode/
 .idea/
 
+# Logs and sessions
+sessions/
+
 # OS
 .DS_Store
 Thumbs.db
