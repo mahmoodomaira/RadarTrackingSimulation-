@@ -8,6 +8,7 @@ from behaviors.straight_behavior import StraightBehavior
 from behaviors.random_behavior import RandomBehavior
 import config
 
+
 class SceneBuilder:
     """
     Builds a populated Simulation from a DifficultyPreset.
@@ -15,18 +16,20 @@ class SceneBuilder:
     """
 
     def build(self, preset: DifficultyPreset) -> Simulation:
-        sim = Simulation()
+        sim = Simulation(noise_std=preset.measurement_noise_std)
 
         for i in range(preset.aircraft_count):
             x, y = self._random_position()
-            sim.add_object(Aircraft(
+            aircraft = Aircraft(
                 obj_id    = f"AC{i+1:03d}",
                 x         = x,
                 y         = y,
                 speed     = preset.aircraft_speed,
                 direction = random.uniform(0, 360),
                 behavior  = StraightBehavior()
-            ))
+            )
+            aircraft.attach_alpha_beta_filter(config.ALPHA_BETA_ALPHA, config.ALPHA_BETA_BETA)
+            sim.add_object(aircraft)
 
         for i in range(preset.noise_count):
             x, y = self._random_position()

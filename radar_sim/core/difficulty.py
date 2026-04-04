@@ -1,6 +1,8 @@
 # core/difficulty.py
 from dataclasses import dataclass
 
+from config import MEASUREMENT_NOISE_STD_EASY, MEASUREMENT_NOISE_STD_HARD, MEASUREMENT_NOISE_STD_MEDIUM
+
 @dataclass(frozen=True)
 class DifficultyPreset:
     """
@@ -14,6 +16,7 @@ class DifficultyPreset:
     noise_speed:      float
     noise_drift:      float   # degrees of random drift
     flicker_chance:   float   # 0.0 to 1.0
+    measurement_noise_std: float = 0.0  # default, can be overridden by config
 
 
 # --- Presets ---
@@ -26,6 +29,8 @@ EASY = DifficultyPreset(
     noise_speed    = 25.0,
     noise_drift    = 20.0,
     flicker_chance = 0.4,    # noise flickers often — easy to spot
+    measurement_noise_std = MEASUREMENT_NOISE_STD_EASY
+
 )
 
 MEDIUM = DifficultyPreset(
@@ -36,6 +41,7 @@ MEDIUM = DifficultyPreset(
     noise_speed    = 45.0,
     noise_drift    = 45.0,
     flicker_chance = 0.25,   # noise more persistent — harder to spot
+    measurement_noise_std = MEASUREMENT_NOISE_STD_MEDIUM
 )
 
 HARD = DifficultyPreset(
@@ -46,6 +52,7 @@ HARD = DifficultyPreset(
     noise_speed    = 70.0,
     noise_drift    = 80.0,
     flicker_chance = 0.1,    # noise barely flickers — very hard to spot
+    measurement_noise_std = MEASUREMENT_NOISE_STD_HARD
 )
 
 ALL_PRESETS = [EASY, MEDIUM, HARD]

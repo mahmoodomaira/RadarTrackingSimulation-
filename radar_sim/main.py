@@ -44,9 +44,10 @@ def main():
                               f"Noise: {preset.noise_count}\n")
 
                 elif state == "simulation":
+
                     tagged = tagger.handle_click(
                         mouse_pos[0], mouse_pos[1],
-                        sim.get_objects()
+                        sim.get_cached_render_positions()
                     )
                     if tagged:
                         result = scorer.evaluate_live(tagged)
@@ -57,8 +58,9 @@ def main():
         if state == "simulation":
             delta_time = renderer.get_delta_time()
             sim.update(delta_time)
+            sim.update_render_positions(delta_time)   # cache render positions once per frame
         else:
-            renderer.get_delta_time()   # keep clock ticking on menu
+            renderer.get_delta_time()
 
         # 3. Draw
         if state == "menu":
@@ -68,10 +70,9 @@ def main():
         elif state == "simulation":
             renderer.clear()
             renderer.draw_radar_background()
-            for obj in sim.get_objects():
-                x, y    = obj.get_position()
+            for obj, rx, ry in sim.get_cached_render_positions():
                 visible = getattr(obj, "visible", True)
-                renderer.draw_object(x, y, obj.get_type(), visible, obj.tag)
+                renderer.draw_object(rx, ry, obj.get_type(), visible, obj.tag)
             renderer.present()
 
     # Session end
