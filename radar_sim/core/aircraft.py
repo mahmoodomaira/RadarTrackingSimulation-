@@ -4,6 +4,7 @@ from behaviors.base_behavior import BaseBehavior
 import config
 import numpy as np
 from core.alpha_beta_filter import AlphaBetaFilter
+from core.kalman_filter import KalmanFilter1D
 
 class Aircraft(RadarObject):
     """
@@ -93,6 +94,21 @@ class Aircraft(RadarObject):
         self._alpha_beta_filter_x = AlphaBetaFilter(alpha, beta)
         self._alpha_beta_filter_y = AlphaBetaFilter(alpha, beta)
         
+    def attach_kalman_filter(self, process_noise_std: float, measurement_noise_std: float) -> None:
+        """
+        Attach a Kalman Filter to this aircraft.
+        Creates two independent KalmanFilter1D instances — one per axis.
+
+        Parameters
+        ----------
+        process_noise_std : float
+            Passed to both filters. Models unexpected maneuvers.
+        measurement_noise_std : float
+            Passed to both filters. Should match simulation noise_std.
+        """
+        self._kalman_filter_x = KalmanFilter1D(process_noise_std, measurement_noise_std)
+        self._kalman_filter_y = KalmanFilter1D(process_noise_std, measurement_noise_std)
+
     def get_filtered_position(self, measurement_x: float, measurement_y: float, dt: float) -> tuple[float, float]:
         """
         Feed the latest noisy measurement into the filters and return
@@ -118,6 +134,33 @@ class Aircraft(RadarObject):
         if hasattr(self, '_alpha_beta_filter_x'):
             filtered_x = self._alpha_beta_filter_x.update(measurement_x, dt)
             filtered_y = self._alpha_beta_filter_y.update(measurement_y, dt)
+            return filtered_x, filtered_y
+        return measurement_x, measurement_y
+    
+    def get_kalman_position(self, measurement_x: float, measurement_y: float, dt: float) -> tuple[float, float]:
+        """
+        Feed the latest noisy measurement into the Kalman filters
+        and return the smoothed position estimate.
+
+        If no Kalman filter is attached, return raw measurements unchanged.
+
+        Parameters
+        ----------
+        measurement_x : float
+            Noisy x observation.
+        measurement_y : float
+            Noisy y observation.
+        dt : float
+            Time since last update in seconds.
+
+        Returns
+        -------
+        tuple[float, float]
+            (filtered_x, filtered_y)
+        """
+        if hasattr(self, '_kalman_filter_x'):
+            filtered_x = self._kalman_filter_x.update(measurement_x, dt)
+            filtered_y = self._kalman_filter_y.update(measurement_y, dt)
             return filtered_x, filtered_y
         return measurement_x, measurement_y
             

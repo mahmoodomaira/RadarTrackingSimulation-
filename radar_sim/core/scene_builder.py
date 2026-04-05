@@ -18,6 +18,19 @@ class SceneBuilder:
     def build(self, preset: DifficultyPreset) -> Simulation:
         sim = Simulation(noise_std=preset.measurement_noise_std)
 
+        # for i in range(preset.aircraft_count):
+        #     x, y = self._random_position()
+        #     aircraft = Aircraft(
+        #         obj_id    = f"AC{i+1:03d}",
+        #         x         = x,
+        #         y         = y,
+        #         speed     = preset.aircraft_speed,
+        #         direction = random.uniform(0, 360),
+        #         behavior  = StraightBehavior()
+        #     )
+        #     aircraft.attach_alpha_beta_filter(config.ALPHA_BETA_ALPHA, config.ALPHA_BETA_BETA)
+        #     sim.add_object(aircraft)
+            
         for i in range(preset.aircraft_count):
             x, y = self._random_position()
             aircraft = Aircraft(
@@ -28,7 +41,10 @@ class SceneBuilder:
                 direction = random.uniform(0, 360),
                 behavior  = StraightBehavior()
             )
-            aircraft.attach_alpha_beta_filter(config.ALPHA_BETA_ALPHA, config.ALPHA_BETA_BETA)
+            aircraft.attach_kalman_filter(
+                process_noise_std    = config.KALMAN_PROCESS_NOISE_STD,
+                measurement_noise_std = preset.measurement_noise_std
+            )
             sim.add_object(aircraft)
 
         for i in range(preset.noise_count):

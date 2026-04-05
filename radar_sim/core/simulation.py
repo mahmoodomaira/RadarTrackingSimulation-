@@ -32,7 +32,7 @@ class Simulation:
         for obj in self._objects:
             if isinstance(obj, Aircraft):
                 mx, my = obj.get_measured_position(self.noise_std)
-                rx, ry = obj.get_filtered_position(mx, my, dt)
+                rx, ry = obj.get_kalman_position(mx, my, dt)
             else:
                 rx, ry = obj.x, obj.y
             self._render_cache.append((obj, rx, ry))

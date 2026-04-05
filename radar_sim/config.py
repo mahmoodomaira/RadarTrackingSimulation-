@@ -19,3 +19,6 @@ MEASUREMENT_NOISE_STD_HARD   = 12.0  # pixels, noisy radar
 # --- Alpha-Beta Filter ---
 ALPHA_BETA_ALPHA = 0.2
 ALPHA_BETA_BETA  = 0.05
+
+# --- Kalman Filter ---
+KALMAN_PROCESS_NOISE_STD = 0.5   # sigma_a — tune this for aircraft maneuverability
