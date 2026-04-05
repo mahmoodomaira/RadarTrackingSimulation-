@@ -69,4 +69,16 @@ class PygameRenderer(BaseRenderer):
         pygame.draw.circle(self.screen, color, (ix, iy), 5)
         
     def get_delta_time(self) -> float:
-        return self._delta_time  
+        return self._delta_time
+    
+    def draw_raw_blip(self, x: float, y: float):
+        """Draw the noisy raw measurement — small dim dot."""
+        pygame.draw.circle(self.screen, (80, 80, 80), (int(x), int(y)), 3) 
+        
+    def draw_trail(self, trail: list[tuple[float, float]]):
+        """Draw fading trail of past filtered positions."""
+        n = len(trail)
+        for i, (tx, ty) in enumerate(trail):
+            alpha = int(255 * (i + 1) / n)   # fade oldest to newest
+            color = (0, alpha, 60)            # dark to bright green
+            pygame.draw.circle(self.screen, color, (int(tx), int(ty)), 2)

@@ -70,9 +70,13 @@ def main():
         elif state == "simulation":
             renderer.clear()
             renderer.draw_radar_background()
-            for obj, rx, ry in sim.get_cached_render_positions():
-                visible = getattr(obj, "visible", True)
-                renderer.draw_object(rx, ry, obj.get_type(), visible, obj.tag)
+            for snap in sim.get_cached_render_positions():
+                visible = getattr(snap.obj, "visible", True)
+                if snap.trail:
+                    renderer.draw_trail(snap.trail)
+                if snap.raw_x is not None:
+                    renderer.draw_raw_blip(snap.raw_x, snap.raw_y)
+                renderer.draw_object(snap.rx, snap.ry, snap.obj.get_type(), visible, snap.obj.tag)
             renderer.present()
 
     # Session end

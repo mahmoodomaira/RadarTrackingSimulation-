@@ -1,25 +1,12 @@
-# behaviors/straight_behavior.py
 import math
 from behaviors.base_behavior import BaseBehavior
 
 class StraightBehavior(BaseBehavior):
-    """
-    Moves in a straight line based on direction and speed.
-    """
-
-    def move(
-        self,
-        x: float,
-        y: float,
-        speed: float,
-        direction: float,
-        delta_time: float
-    ) -> tuple[float, float]:
-
+    def move(self, x, y, speed, direction, delta_time) -> tuple[float, float, float]:
         radians = math.radians(direction)
         new_x = x + math.cos(radians) * speed * delta_time
         new_y = y + math.sin(radians) * speed * delta_time
-        return (new_x, new_y)
+        return (new_x, new_y, direction)
     
 """
 

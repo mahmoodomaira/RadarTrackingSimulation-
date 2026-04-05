@@ -25,7 +25,7 @@ class NoiseBlip(RadarObject):
 
     def update(self, delta_time: float):
         # Move erratically
-        self.x, self.y = self.behavior.move(
+        self.x, self.y, _ = self.behavior.move(
             self.x, self.y,
             self.speed, 0,
             delta_time

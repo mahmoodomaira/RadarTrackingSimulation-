@@ -7,6 +7,8 @@ from core.difficulty import DifficultyPreset
 from behaviors.straight_behavior import StraightBehavior
 from behaviors.random_behavior import RandomBehavior
 import config
+from behaviors.constant_turn_behavior import ConstantTurnBehavior
+from behaviors.evasive_behavior import EvasiveBehavior
 
 
 class SceneBuilder:
@@ -39,10 +41,10 @@ class SceneBuilder:
                 y         = y,
                 speed     = preset.aircraft_speed,
                 direction = random.uniform(0, 360),
-                behavior  = StraightBehavior()
+                behavior  = self._make_behavior(preset)
             )
             aircraft.attach_kalman_filter(
-                process_noise_std    = config.KALMAN_PROCESS_NOISE_STD,
+                process_noise_std     = config.KALMAN_PROCESS_NOISE_STD,
                 measurement_noise_std = preset.measurement_noise_std
             )
             sim.add_object(aircraft)
@@ -71,3 +73,15 @@ class SceneBuilder:
             # Reject positions outside the circle
             if (x - cx) ** 2 + (y - cy) ** 2 <= r ** 2:
                 return x, y
+            
+    def _make_behavior(self, preset: DifficultyPreset):
+        if preset.behavior_mode == "turn":
+            return ConstantTurnBehavior(
+                turn_rate=random.choice([-1, 1]) * config.CONSTANT_TURN_RATE
+            )
+        elif preset.behavior_mode == "evasive":
+            return EvasiveBehavior(
+                min_straight=config.EVASIVE_MIN_STRAIGHT,
+                max_straight=config.EVASIVE_MAX_STRAIGHT
+            )
+        return StraightBehavior()

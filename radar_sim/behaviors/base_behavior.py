@@ -1,13 +1,6 @@
-# behaviors/base_behavior.py
 from abc import ABC, abstractmethod
 
 class BaseBehavior(ABC):
-    """
-    Contract for all movement behaviors.
-    A behavior takes a position + direction + speed
-    and returns a new position.
-    """
-
     @abstractmethod
     def move(
         self,
@@ -16,9 +9,9 @@ class BaseBehavior(ABC):
         speed: float,
         direction: float,
         delta_time: float
-    ) -> tuple[float, float]:
+    ) -> tuple[float, float, float]:
         """
-        Calculate and return the new (x, y) position.
+        Returns (new_x, new_y, new_direction).
         direction: angle in degrees (0 = right, 90 = down)
         delta_time: seconds since last frame
         """

@@ -5,6 +5,7 @@ import config
 import numpy as np
 from core.alpha_beta_filter import AlphaBetaFilter
 from core.kalman_filter import KalmanFilter1D
+from collections import deque
 
 class Aircraft(RadarObject):
     """
@@ -26,7 +27,7 @@ class Aircraft(RadarObject):
         self.behavior = behavior   # ← injected, not hardcoded
 
     def update(self, delta_time: float):
-        self.x, self.y = self.behavior.move(
+        self.x, self.y, self.direction = self.behavior.move(
             self.x, self.y,
             self.speed, self.direction,
             delta_time
@@ -163,4 +164,52 @@ class Aircraft(RadarObject):
             filtered_y = self._kalman_filter_y.update(measurement_y, dt)
             return filtered_x, filtered_y
         return measurement_x, measurement_y
+    
+    def update_trail(self, x: float, y: float, max_length: int) -> None:
+        """
+        Append (x, y) to this aircraft's position trail.
+        If trail exceeds max_length, remove the oldest entry.
+        Trail is initialized lazily on first call.
+
+        Parameters
+        ----------
+        x : float
+            Filtered x position to record.
+        y : float
+            Filtered y position to record.
+        max_length : int
+            Maximum number of positions to retain.
+        """
+        if not hasattr(self, 'trail') or self.trail.maxlen != max_length:
+            self.trail = deque(maxlen=max_length)
+        self.trail.append((x, y))
+            
+    def get_trail(self) -> list[tuple[float, float]]:
+        """
+        Return the current trail as a list of (x, y) tuples,
+        oldest first.
+        Returns empty list if trail has never been updated.
+        """
+        if not hasattr(self, 'trail'):
+            return []
+        return list(self.trail)
+    
+    def reset_kalman_filter(self, position_x: float, position_y: float) -> None:
+        """
+        Re-initialize the Kalman filters at a new position.
+        Called when a discontinuity is detected (e.g. wrap-around).
+        Resets both axis filters and clears the trail.
+
+        Parameters
+        ----------
+        position_x : float
+            New x position to seed the filter with.
+        position_y : float
+            New y position to seed the filter with.
+        """
+        if hasattr(self, '_kalman_filter_x'):
+            self._kalman_filter_x.initialize(position_x)
+            self._kalman_filter_y.initialize(position_y)
+        if hasattr(self, 'trail'):
+            self.trail.clear()
             
