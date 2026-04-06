@@ -1,7 +1,8 @@
 # core/ekf_filter.py
 import numpy as np
+from core.base_filter import BaseFilter
 
-class ExtendedKalmanFilter:
+class ExtendedKalmanFilter(BaseFilter):
     """
     Extended Kalman Filter using a coordinated turn motion model.
     Tracks 2D position and velocity jointly.
@@ -161,3 +162,6 @@ class ExtendedKalmanFilter:
     def velocity(self) -> tuple[float, float]:
         """Current (vx, vy) velocity estimate."""
         return float(self._x[2, 0]), float(self._x[3, 0])
+    
+    def is_initialized(self) -> bool:
+        return self._initialized

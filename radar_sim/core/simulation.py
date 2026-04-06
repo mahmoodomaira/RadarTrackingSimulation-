@@ -27,13 +27,13 @@ class Simulation:
                 mx, my = obj.get_measured_position(self.noise_std)
 
                 # Wrap-around detection
-                if hasattr(obj, '_ekf') and obj._ekf._initialized:
-                    ex, ey = obj._ekf.position
+                if hasattr(obj, '_filter') and obj._filter.is_initialized():
+                    ex, ey = obj._filter.position
                     if abs(mx - ex) > config.FILTER_REINIT_THRESHOLD or \
                     abs(my - ey) > config.FILTER_REINIT_THRESHOLD:
-                        obj.reset_ekf(mx, my)
+                        obj.reset_filter(mx, my)
 
-                rx, ry = obj.get_ekf_position(mx, my, dt)
+                rx, ry = obj.get_filtered_position(mx, my, dt)
                 obj.update_trail(rx, ry, config.TRAIL_LENGTH)
                 self._render_cache.append(RenderSnapshot(
                     obj=obj, rx=rx, ry=ry,

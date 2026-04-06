@@ -1,6 +1,7 @@
 # core/alpha_beta_filter.py
+from core.base_filter import BaseFilter
 
-class AlphaBetaFilter:
+class AlphaBetaFilter(BaseFilter):
     """
     A two-state recursive filter estimating position and velocity
     from noisy scalar measurements.
@@ -87,3 +88,72 @@ class AlphaBetaFilter:
     def velocity(self) -> float:
         """Current velocity estimate."""
         return self._velocity
+    
+    def is_initialized(self) -> bool:
+        return self._initialized
+
+
+class AlphaBetaFilter2D(BaseFilter):
+    """
+    A 2D Alpha-Beta Filter that uses two independent AlphaBetaFilter instances
+    for tracking position and velocity in x and y axes separately.
+
+    This provides the same smoothing as the original approach but properly
+    implements the BaseFilter interface.
+
+    Parameters
+    ----------
+    alpha : float
+        Position gain (0 < alpha <= 1). Higher values track faster but smooth less.
+    beta : float
+        Velocity gain (0 < beta <= 2). Higher values adapt faster to acceleration.
+    """
+
+    def __init__(self, alpha: float, beta: float):
+        self._filter_x = AlphaBetaFilter(alpha, beta)
+        self._filter_y = AlphaBetaFilter(alpha, beta)
+
+    def update(self, measured_x: float, measured_y: float, dt: float) -> tuple[float, float]:
+        """
+        Ingest one 2D measurement and return filtered position.
+
+        On first call: initialize both filters and return measurements directly.
+        On subsequent calls: full predict → update cycle for both axes.
+
+        Parameters
+        ----------
+        measured_x, measured_y : float
+            Noisy position observations.
+        dt : float
+            Seconds since last update.
+
+        Returns
+        -------
+        tuple[float, float]
+            (filtered_x, filtered_y)
+        """
+        filtered_x = self._filter_x.update(measured_x, dt)
+        filtered_y = self._filter_y.update(measured_y, dt)
+        return filtered_x, filtered_y
+
+    def reset(self, x: float, y: float) -> None:
+        """
+        Re-initialize filters at a new position, zero velocity.
+        Used for wrap-around recovery.
+        """
+        self._filter_x.initialize(x)
+        self._filter_y.initialize(y)
+
+    def is_initialized(self) -> bool:
+        """Return True if both axis filters are initialized."""
+        return self._filter_x.is_initialized() and self._filter_y.is_initialized()
+
+    @property
+    def position(self) -> tuple[float, float]:
+        """Current (x, y) position estimate."""
+        return (self._filter_x.position, self._filter_y.position)
+
+    @property
+    def velocity(self) -> tuple[float, float]:
+        """Current (vx, vy) velocity estimate."""
+        return (self._filter_x.velocity, self._filter_y.velocity)

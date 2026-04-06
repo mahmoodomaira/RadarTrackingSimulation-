@@ -9,6 +9,9 @@ from behaviors.random_behavior import RandomBehavior
 import config
 from behaviors.constant_turn_behavior import ConstantTurnBehavior
 from behaviors.evasive_behavior import EvasiveBehavior
+from core.ekf_filter import ExtendedKalmanFilter
+from core.kalman_filter import KalmanFilter2D
+from core.alpha_beta_filter import AlphaBetaFilter2D
 import math
 
 
@@ -45,10 +48,8 @@ class SceneBuilder:
                 direction = random.uniform(0, 360),
                 behavior  = behavior
             )
-            aircraft.attach_ekf(
-                process_noise_std     = config.KALMAN_PROCESS_NOISE_STD,
-                measurement_noise_std = preset.measurement_noise_std,
-                turn_rate             = self._make_turn_rate(preset)
+            aircraft.attach_filter(
+                self._make_filter(preset)
             )
             sim.add_object(aircraft)
 
@@ -94,3 +95,24 @@ class SceneBuilder:
         if preset.behavior_mode == "turn":
             return math.radians(config.CONSTANT_TURN_RATE)
         return 0.0  # straight and evasive both start with zero turn assumption
+    
+    def _make_filter(self, preset: DifficultyPreset):
+        """Return appropriate filter instance based on preset filter_type."""
+        if preset.filter_type == "ekf":
+            return ExtendedKalmanFilter(
+                process_noise_std     = config.KALMAN_PROCESS_NOISE_STD,
+                measurement_noise_std = preset.measurement_noise_std,
+                turn_rate             = self._make_turn_rate(preset)
+            )
+        elif preset.filter_type == "kalman":
+            return KalmanFilter2D(
+                process_noise_std     = config.KALMAN_PROCESS_NOISE_STD,
+                measurement_noise_std = preset.measurement_noise_std
+            )
+        elif preset.filter_type == "alpha_beta":
+            return AlphaBetaFilter2D(
+                alpha = config.ALPHA_BETA_ALPHA,
+                beta  = config.ALPHA_BETA_BETA
+            )
+        else:
+            raise ValueError(f"Unknown filter_type: {preset.filter_type}")
