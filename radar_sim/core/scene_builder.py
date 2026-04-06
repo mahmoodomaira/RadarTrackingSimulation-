@@ -9,6 +9,7 @@ from behaviors.random_behavior import RandomBehavior
 import config
 from behaviors.constant_turn_behavior import ConstantTurnBehavior
 from behaviors.evasive_behavior import EvasiveBehavior
+import math
 
 
 class SceneBuilder:
@@ -34,18 +35,20 @@ class SceneBuilder:
         #     sim.add_object(aircraft)
             
         for i in range(preset.aircraft_count):
-            x, y = self._random_position()
+            x, y     = self._random_position()
+            behavior = self._make_behavior(preset)
             aircraft = Aircraft(
                 obj_id    = f"AC{i+1:03d}",
                 x         = x,
                 y         = y,
                 speed     = preset.aircraft_speed,
                 direction = random.uniform(0, 360),
-                behavior  = self._make_behavior(preset)
+                behavior  = behavior
             )
-            aircraft.attach_kalman_filter(
+            aircraft.attach_ekf(
                 process_noise_std     = config.KALMAN_PROCESS_NOISE_STD,
-                measurement_noise_std = preset.measurement_noise_std
+                measurement_noise_std = preset.measurement_noise_std,
+                turn_rate             = self._make_turn_rate(preset)
             )
             sim.add_object(aircraft)
 
@@ -85,3 +88,9 @@ class SceneBuilder:
                 max_straight=config.EVASIVE_MAX_STRAIGHT
             )
         return StraightBehavior()
+    
+    def _make_turn_rate(self, preset: DifficultyPreset) -> float:
+        """Return EKF turn rate matched to the behavior mode."""
+        if preset.behavior_mode == "turn":
+            return math.radians(config.CONSTANT_TURN_RATE)
+        return 0.0  # straight and evasive both start with zero turn assumption

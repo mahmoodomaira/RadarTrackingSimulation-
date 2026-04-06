@@ -21,13 +21,13 @@ ALPHA_BETA_ALPHA = 0.2
 ALPHA_BETA_BETA  = 0.05
 
 # --- Kalman Filter ---
-KALMAN_PROCESS_NOISE_STD = 0.5   # sigma_a — tune this for aircraft maneuverability
+KALMAN_PROCESS_NOISE_STD = 12   # sigma_a — tune this for aircraft maneuverability
 
 # --- Visualization ---
 TRAIL_LENGTH = 20   # number of past filtered positions to display
 
 # --- Filter ---
-FILTER_REINIT_THRESHOLD = 80.0  # pixels — jump larger than this triggers re-init
+FILTER_REINIT_THRESHOLD = 120 # 80.0  # pixels — jump larger than this triggers re-init
 
 # --- Behaviors ---
 CONSTANT_TURN_RATE  = 40.0   # degrees per second

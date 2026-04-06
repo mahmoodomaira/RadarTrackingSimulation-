@@ -26,14 +26,14 @@ class Simulation:
             if isinstance(obj, Aircraft):
                 mx, my = obj.get_measured_position(self.noise_std)
 
-                # Detect wrap-around or large discontinuity
-                if hasattr(obj, '_kalman_filter_x') and obj._kalman_filter_x._initialized:
-                    dx = abs(mx - obj._kalman_filter_x.position)
-                    dy = abs(my - obj._kalman_filter_y.position)
-                    if dx > config.FILTER_REINIT_THRESHOLD or dy > config.FILTER_REINIT_THRESHOLD:
-                        obj.reset_kalman_filter(mx, my)
+                # Wrap-around detection
+                if hasattr(obj, '_ekf') and obj._ekf._initialized:
+                    ex, ey = obj._ekf.position
+                    if abs(mx - ex) > config.FILTER_REINIT_THRESHOLD or \
+                    abs(my - ey) > config.FILTER_REINIT_THRESHOLD:
+                        obj.reset_ekf(mx, my)
 
-                rx, ry = obj.get_kalman_position(mx, my, dt)
+                rx, ry = obj.get_ekf_position(mx, my, dt)
                 obj.update_trail(rx, ry, config.TRAIL_LENGTH)
                 self._render_cache.append(RenderSnapshot(
                     obj=obj, rx=rx, ry=ry,

@@ -6,6 +6,7 @@ import numpy as np
 from core.alpha_beta_filter import AlphaBetaFilter
 from core.kalman_filter import KalmanFilter1D
 from collections import deque
+from core.ekf_filter import ExtendedKalmanFilter
 
 class Aircraft(RadarObject):
     """
@@ -210,6 +211,39 @@ class Aircraft(RadarObject):
         if hasattr(self, '_kalman_filter_x'):
             self._kalman_filter_x.initialize(position_x)
             self._kalman_filter_y.initialize(position_y)
+        if hasattr(self, 'trail'):
+            self.trail.clear()
+            
+    def attach_ekf(self, process_noise_std: float, measurement_noise_std: float, turn_rate: float = 0.0) -> None:
+        """
+        Attach an Extended Kalman Filter to this aircraft.
+        Single EKF instance tracks both axes jointly.
+
+        Parameters
+        ----------
+        process_noise_std : float
+            Models unexpected acceleration.
+        measurement_noise_std : float
+            Should match simulation noise_std.
+        turn_rate : float
+            Expected turn rate in radians/second.
+            0.0 = straight flight, nonzero = coordinated turn.
+        """
+        self._ekf = ExtendedKalmanFilter(process_noise_std, measurement_noise_std, turn_rate)
+
+    def get_ekf_position(self, measured_x: float, measured_y: float, dt: float) -> tuple[float, float]:
+        """
+        Feed measurement into EKF and return filtered position.
+        Falls back to raw measurement if no EKF attached.
+        """
+        if hasattr(self, '_ekf'):
+            return self._ekf.update(measured_x, measured_y, dt)
+        return measured_x, measured_y
+    
+    def reset_ekf(self, position_x: float, position_y: float) -> None:
+        """Re-initialize EKF at new position. Used for wrap-around recovery."""
+        if hasattr(self, '_ekf'):
+            self._ekf.reset(position_x, position_y)
         if hasattr(self, 'trail'):
             self.trail.clear()
             
