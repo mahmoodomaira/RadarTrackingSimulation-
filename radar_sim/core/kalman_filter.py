@@ -2,7 +2,7 @@
 import numpy as np
 from core.base_filter import BaseFilter
 
-class KalmanFilter1D(BaseFilter):
+class KalmanFilter1D:
     """
     A one-dimensional Kalman Filter tracking position and velocity
     from noisy scalar measurements.
